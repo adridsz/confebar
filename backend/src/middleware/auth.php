@@ -12,10 +12,19 @@ global $authMiddleware, $checkRole;
 $authMiddleware = function (Request $request, RequestHandler $handler) {
     $response = new Response();
 
+    // Verificar si la solicitud es OPTIONS (preflight) y permitir pasar
+    if ($request->getMethod() === 'OPTIONS') {
+        return $handler->handle($request);
+    }
+
     $header = $request->getHeaderLine('Authorization');
+
     if (!$header) {
-        $response->getBody()->write(json_encode(['error' => 'Token required']));
-        return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+        $response->getBody()->write(json_encode([
+            'error' => 'Token required'
+        ]));
+        return $response->withStatus(401)
+            ->withHeader('Content-Type', 'application/json');
     }
 
     $token = trim(str_replace('Bearer', '', $header));
@@ -25,8 +34,11 @@ $authMiddleware = function (Request $request, RequestHandler $handler) {
         $request = $request->withAttribute('user', $decoded);
         return $handler->handle($request);
     } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => 'Invalid token']));
-        return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+        $response->getBody()->write(json_encode([
+            'error' => 'Invalid token'
+        ]));
+        return $response->withStatus(401)
+            ->withHeader('Content-Type', 'application/json');
     }
 };
 

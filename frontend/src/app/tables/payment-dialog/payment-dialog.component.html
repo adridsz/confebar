@@ -1,0 +1,86 @@
+<h2 mat-dialog-title>Procesar Pago</h2>
+<mat-dialog-content>
+  <div class="payment-options">
+    <div class="total-section">
+      <h3>
+        Total a pagar:
+        <span class="highlight">€{{ Number(data.orderTotal).toFixed(2) }}</span>
+      </h3>
+    </div>
+
+    <mat-divider class="divider"></mat-divider>
+
+    <mat-checkbox
+      [(ngModel)]="splitPayment"
+      (change)="calculateSplitAmount()"
+      class="split-checkbox"
+    >
+      Dividir cuenta
+    </mat-checkbox>
+
+    @if (splitPayment) {
+    <div class="split-options">
+      <mat-form-field appearance="outline">
+        <mat-label>Número de personas</mat-label>
+        <input
+          matInput
+          type="number"
+          [(ngModel)]="splitCount"
+          min="2"
+          (change)="calculateSplitAmount()"
+        />
+      </mat-form-field>
+
+      <div class="split-result">
+        <span>Importe por persona:</span>
+        <span class="split-amount">€{{ amountPerPerson.toFixed(2) }}</span>
+      </div>
+    </div>
+    <mat-divider class="divider"></mat-divider>
+    }
+
+    <div class="payment-method">
+      <h3>Método de pago</h3>
+      <mat-radio-group [(ngModel)]="paymentMethod" class="method-group">
+        <mat-radio-button value="cash">Efectivo</mat-radio-button>
+        <mat-radio-button value="card">Tarjeta</mat-radio-button>
+      </mat-radio-group>
+    </div>
+
+    @if (paymentMethod === 'cash') {
+    <div class="cash-payment">
+      <mat-form-field appearance="outline" class="cash-amount">
+        <mat-label>Importe entregado</mat-label>
+        <input
+          matInput
+          type="number"
+          [(ngModel)]="cashAmount"
+          min="{{ data.orderTotal }}"
+          (input)="calculateChange()"
+        />
+        <span matTextPrefix>€</span>
+      </mat-form-field>
+
+      <div class="change-section">
+        <span>Cambio a devolver:</span>
+        <span class="change-amount">€{{ change.toFixed(2) }}</span>
+      </div>
+    </div>
+    }
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button
+    mat-raised-button
+    color="primary"
+    [disabled]="
+      loading || (paymentMethod === 'cash' && cashAmount < data.orderTotal)
+    "
+    (click)="processPayment()"
+  >
+    @if (loading) {
+    <mat-spinner diameter="20"></mat-spinner>
+    } @else { Pagar }
+  </button>
+</mat-dialog-actions>

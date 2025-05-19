@@ -1,0 +1,138 @@
+<div class="admin-dashboard-container">
+  <h1>Panel de Administración</h1>
+
+  <div class="date-filter">
+    <h2>Filtrar por fecha</h2>
+    <div class="date-inputs">
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha de inicio</mat-label>
+        <input matInput [matDatepicker]="startPicker" [(ngModel)]="startDate" />
+        <mat-datepicker-toggle
+          matSuffix
+          [for]="startPicker"
+        ></mat-datepicker-toggle>
+        <mat-datepicker #startPicker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha de fin</mat-label>
+        <input matInput [matDatepicker]="endPicker" [(ngModel)]="endDate" />
+        <mat-datepicker-toggle
+          matSuffix
+          [for]="endPicker"
+        ></mat-datepicker-toggle>
+        <mat-datepicker #endPicker></mat-datepicker>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" (click)="loadProfitData()">
+        <mat-icon>search</mat-icon> Filtrar
+      </button>
+    </div>
+  </div>
+
+  @if (loading) {
+  <div class="loading-container">
+    <mat-spinner></mat-spinner>
+  </div>
+  } @else if (profitData) {
+  <div class="dashboard-stats">
+    <mat-card class="stat-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>paid</mat-icon>
+        <mat-card-title>Ingresos Totales</mat-card-title>
+        <mat-card-subtitle>{{ getFormattedDates() }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="stat-amount">
+          €{{ Number(profitData.total_revenue).toFixed(2) }}
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>receipt_long</mat-icon>
+        <mat-card-title>Pedidos</mat-card-title>
+        <mat-card-subtitle>{{ getFormattedDates() }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="stat-amount">{{ profitData.total_orders }}</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>restaurant</mat-icon>
+        <mat-card-title>Valor Pedido Promedio</mat-card-title>
+        <mat-card-subtitle>{{ getFormattedDates() }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="stat-amount">
+          €{{ Number(profitData.average_order).toFixed(2) }}
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <h2>Método de Pago</h2>
+  <div class="payment-stats">
+    <mat-card class="payment-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>payments</mat-icon>
+        <mat-card-title>Efectivo</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="payment-details">
+          <div class="payment-count">
+            {{ profitData.payment_methods.cash.count }} pedidos
+          </div>
+          <div class="payment-amount">
+            €{{ Number(profitData.payment_methods.cash.amount).toFixed(2) }}
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="payment-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>credit_card</mat-icon>
+        <mat-card-title>Tarjeta</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="payment-details">
+          <div class="payment-count">
+            {{ profitData.payment_methods.card.count }} pedidos
+          </div>
+          <div class="payment-amount">
+            €{{ Number(profitData.payment_methods.card.amount).toFixed(2) }}
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  @if (profitData.top_products && profitData.top_products.length > 0) {
+  <h2>Productos Más Vendidos</h2>
+  <div class="top-products">
+    @for (product of profitData.top_products; track product.id) {
+    <mat-card class="product-card">
+      <mat-card-header>
+        <mat-card-title>{{ product.name }}</mat-card-title>
+        <mat-card-subtitle>{{ product.category }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="product-stats">
+          <div>{{ product.quantity }} unidades</div>
+          <div>€{{ Number(product.total).toFixed(2) }}</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    }
+  </div>
+  } } @else {
+  <div class="no-data">
+    <mat-icon>info</mat-icon>
+    <p>No hay datos disponibles para el período seleccionado.</p>
+  </div>
+  }
+</div>

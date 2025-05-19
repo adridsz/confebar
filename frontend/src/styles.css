@@ -1,1 +1,76 @@
 /* You can add global styles to this file, and also import other style files */
+/* Asegurarse de importar los estilos de Angular Material */
+@import "@angular/material/prebuilt-themes/indigo-pink.css";
+
+/* Estilos generales para mejorar la visualización */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  overflow-x: hidden;
+}
+
+/* Eliminar margin-top del h1 en mat-toolbar */
+.mat-toolbar h1 {
+  margin-top: 0;
+}
+
+/* Mejorar espaciado y alineación */
+.mat-toolbar {
+  padding: 0 16px;
+}
+
+/* Asegurar que los elementos de navegación no se corten */
+.mat-list-item,
+.mat-toolbar-row span {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Evitar superposición de textos */
+.mat-sidenav {
+  overflow-x: hidden !important;
+}
+
+.mat-icon {
+  font-family: "Material Icons";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  vertical-align: middle;
+}
+
+.mat-button-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+/* Ajustes para textos cortados */
+.mat-list-item-content {
+  padding: 0 16px !important;
+}
+
+/* Fix para mat-icon alignment */
+button .mat-icon {
+  line-height: 1;
+  height: 24px;
+  width: 24px;
+}
+
+/* Arreglos para íconos específicos */
+.table-status .mat-icon {
+  margin-right: 8px;
+  font-size: 20px;
+  height: 20px;
+  width: 20px;
+  line-height: 20px;
+}

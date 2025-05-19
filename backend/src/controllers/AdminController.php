@@ -2,8 +2,9 @@
 
 namespace App\Controllers;
 
-use App\Models\User;
 use App\Models\Order;
+use App\Models\Product;
+use App\Models\User;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -11,29 +12,72 @@ class AdminController
 {
     public function getProfits(Request $request, Response $response)
     {
-        // Obtener parámetros opcionales de consulta
-        $params = $request->getQueryParams();
-        $startDate = $params['start_date'] ?? null;
-        $endDate = $params['end_date'] ?? null;
+        $queryParams = $request->getQueryParams();
+        $startDate = $queryParams['start_date'] ?? date('Y-m-d', strtotime('-30 days'));
+        $endDate = $queryParams['end_date'] ?? date('Y-m-d');
 
-        $query = Order::where('status', 'paid');
+        // Asegurar que las fechas estén en formato correcto
+        $startDate = date('Y-m-d 00:00:00', strtotime($startDate));
+        $endDate = date('Y-m-d 23:59:59', strtotime($endDate));
 
-        if ($startDate) {
-            $query->where('created_at', '>=', $startDate . ' 00:00:00');
+        // Obtener pedidos pagados en el periodo
+        $orders = Order::where('status', 'paid')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->get();
+
+        // Calcular totales
+        $totalRevenue = $orders->sum('total');
+        $totalOrders = $orders->count();
+        $averageOrder = $totalOrders > 0 ? $totalRevenue / $totalOrders : 0;
+
+        // Calcular métodos de pago
+        $cashOrders = $orders->where('payment_method', 'cash');
+        $cardOrders = $orders->where('payment_method', 'card');
+
+        $paymentMethods = [
+            'cash' => [
+                'count' => $cashOrders->count(),
+                'amount' => $cashOrders->sum('total')
+            ],
+            'card' => [
+                'count' => $cardOrders->count(),
+                'amount' => $cardOrders->sum('total')
+            ]
+        ];
+
+        // Obtener productos más vendidos
+        $orderItems = [];
+        foreach ($orders as $order) {
+            $items = $order->items()->with('product')->get();
+            foreach ($items as $item) {
+                $productId = $item->product_id;
+                if (!isset($orderItems[$productId])) {
+                    $orderItems[$productId] = [
+                        'id' => $productId,
+                        'name' => $item->product->name,
+                        'category' => $item->product->category,
+                        'quantity' => 0,
+                        'total' => 0
+                    ];
+                }
+                $orderItems[$productId]['quantity'] += $item->quantity;
+                $orderItems[$productId]['total'] += $item->subtotal;
+            }
         }
 
-        if ($endDate) {
-            $query->where('created_at', '<=', $endDate . ' 23:59:59');
-        }
+        // Ordenar y limitar a los 5 más vendidos
+        uasort($orderItems, function ($a, $b) {
+            return $b['quantity'] <=> $a['quantity'];
+        });
 
-        $orders = $query->get();
-        $totalProfits = $orders->sum('total');
-        $orderCount = $orders->count();
+        $topProducts = array_slice(array_values($orderItems), 0, 5);
 
         $result = [
-            'total_profits' => $totalProfits,
-            'order_count' => $orderCount,
-            'average_order_value' => $orderCount > 0 ? ($totalProfits / $orderCount) : 0,
+            'total_revenue' => $totalRevenue,
+            'total_orders' => $totalOrders,
+            'average_order' => $averageOrder,
+            'payment_methods' => $paymentMethods,
+            'top_products' => $topProducts,
             'period' => [
                 'start_date' => $startDate,
                 'end_date' => $endDate
@@ -56,45 +100,41 @@ class AdminController
         $data = $request->getParsedBody();
 
         if (!isset($data['username']) || !isset($data['password']) || !isset($data['role'])) {
-            $response->getBody()->write(json_encode(['error' => 'Missing required fields']));
+            $response->getBody()->write(json_encode(['error' => 'Username, password and role are required']));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
-        // Verificar que el rol sea válido
-        if (!in_array($data['role'], ['dueño', 'gerente', 'camarero'])) {
-            $response->getBody()->write(json_encode(['error' => 'Invalid role']));
-            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
-        }
-
-        // Verificar que el nombre de usuario no exista
+        // Verificar si el usuario ya existe
         $existingUser = User::where('username', $data['username'])->first();
         if ($existingUser) {
             $response->getBody()->write(json_encode(['error' => 'Username already exists']));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
-        $user = new User([
-            'username' => $data['username'],
-            'password' => password_hash($data['password'], PASSWORD_DEFAULT),
-            'role' => $data['role']
-        ]);
+        // Verificar el rol
+        $validRoles = ['dueño', 'gerente', 'camarero'];
+        if (!in_array($data['role'], $validRoles)) {
+            $response->getBody()->write(json_encode(['error' => 'Invalid role']));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
 
+        // Crear el usuario
+        $user = new User();
+        $user->username = $data['username'];
+        $user->password = password_hash($data['password'], PASSWORD_DEFAULT);
+        $user->role = $data['role'];
         $user->save();
 
         $response->getBody()->write(json_encode([
             'success' => true,
-            'user' => [
-                'id' => $user->id,
-                'username' => $user->username,
-                'role' => $user->role
-            ]
+            'user' => $user
         ]));
+
         return $response->withHeader('Content-Type', 'application/json');
     }
 
     public function updateUser(Request $request, Response $response, array $args)
     {
-        $data = $request->getParsedBody();
         $user = User::find($args['id']);
 
         if (!$user) {
@@ -102,34 +142,53 @@ class AdminController
             return $response->withStatus(404)->withHeader('Content-Type', 'application/json');
         }
 
-        // No permitir cambiar el usuario del dueño original (admin)
-        if ($user->username === 'admin' && isset($data['role']) && $data['role'] !== 'dueño') {
-            $response->getBody()->write(json_encode(['error' => 'Cannot change the role of the main owner']));
+        $data = $request->getParsedBody();
+
+        // No permitir cambiar el usuario admin principal
+        if ($user->username === 'admin' && isset($data['username']) && $data['username'] !== 'admin') {
+            $response->getBody()->write(json_encode(['error' => 'Cannot change admin username']));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
+        // Verificar nombre de usuario único
+        if (isset($data['username']) && $data['username'] !== $user->username) {
+            $existingUser = User::where('username', $data['username'])->first();
+            if ($existingUser) {
+                $response->getBody()->write(json_encode(['error' => 'Username already exists']));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+            $user->username = $data['username'];
+        }
+
+        // Actualizar contraseña si se proporciona
+        if (isset($data['password']) && !empty($data['password'])) {
+            $user->password = password_hash($data['password'], PASSWORD_DEFAULT);
+        }
+
+        // Actualizar rol si se proporciona
         if (isset($data['role'])) {
-            if (!in_array($data['role'], ['dueño', 'gerente', 'camarero'])) {
+            $validRoles = ['dueño', 'gerente', 'camarero'];
+            if (!in_array($data['role'], $validRoles)) {
                 $response->getBody()->write(json_encode(['error' => 'Invalid role']));
                 return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
             }
-            $user->role = $data['role'];
-        }
 
-        if (isset($data['password'])) {
-            $user->password = password_hash($data['password'], PASSWORD_DEFAULT);
+            // No permitir cambiar el rol del admin principal
+            if ($user->username === 'admin') {
+                $response->getBody()->write(json_encode(['error' => 'Cannot change admin role']));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+
+            $user->role = $data['role'];
         }
 
         $user->save();
 
         $response->getBody()->write(json_encode([
             'success' => true,
-            'user' => [
-                'id' => $user->id,
-                'username' => $user->username,
-                'role' => $user->role
-            ]
+            'user' => $user
         ]));
+
         return $response->withHeader('Content-Type', 'application/json');
     }
 
@@ -142,9 +201,9 @@ class AdminController
             return $response->withStatus(404)->withHeader('Content-Type', 'application/json');
         }
 
-        // No permitir eliminar al dueño original (admin)
+        // No permitir eliminar al usuario admin principal
         if ($user->username === 'admin') {
-            $response->getBody()->write(json_encode(['error' => 'Cannot delete the main owner account']));
+            $response->getBody()->write(json_encode(['error' => 'Cannot delete admin user']));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 

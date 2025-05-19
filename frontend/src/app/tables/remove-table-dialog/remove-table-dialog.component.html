@@ -1,0 +1,33 @@
+<h2 mat-dialog-title>Eliminar Mesa</h2>
+<mat-dialog-content>
+  @if (data.tables.length === 0) {
+  <p>
+    No hay mesas disponibles para eliminar. Solo se pueden eliminar mesas que no
+    estén ocupadas.
+  </p>
+  } @else {
+  <p>Seleccione la mesa que desea eliminar:</p>
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Mesa</mat-label>
+    <mat-select [(ngModel)]="selectedTableId">
+      @for (table of data.tables; track table.id) {
+      <mat-option [value]="table.id"
+        >Mesa {{ table.number }} ({{ table.capacity }} personas)</mat-option
+      >
+      }
+    </mat-select>
+  </mat-form-field>
+  <p class="warning">¡Atención! Esta acción no se puede deshacer.</p>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button
+    mat-raised-button
+    color="warn"
+    (click)="onSubmit()"
+    [disabled]="!selectedTableId || data.tables.length === 0"
+  >
+    Eliminar
+  </button>
+</mat-dialog-actions>

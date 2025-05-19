@@ -18,6 +18,10 @@ $app->group('/api', function ($app) use ($checkRole) {
     $app->put('/tables/{id}/order/{orderId}', 'App\Controllers\OrderController:update');
     $app->post('/tables/{id}/order/{orderId}/pay', 'App\Controllers\OrderController:pay');
 
+    // Añadir estas dos rutas para gestión de mesas
+    $app->post('/tables', 'App\Controllers\TableController:create')->add($checkRole(['gerente', 'dueño']));
+    $app->delete('/tables/{id}', 'App\Controllers\TableController:delete')->add($checkRole(['gerente', 'dueño']));
+
     // Products management - only manager and owner
     $app->group('/products', function ($app) {
         $app->get('', 'App\Controllers\ProductController:getAll');

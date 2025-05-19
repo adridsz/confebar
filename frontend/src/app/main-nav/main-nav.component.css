@@ -1,0 +1,92 @@
+.sidenav-container {
+  height: 100%;
+}
+
+.sidenav {
+  width: 220px;
+}
+
+.sidenav-header {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding-left: 20px;
+  background-color: #3f51b5;
+  color: white;
+  font-size: 20px;
+}
+
+.sidenav-title {
+  font-weight: 500;
+}
+
+/* Estilos para la barra de herramientas */
+mat-toolbar {
+  display: flex;
+  justify-content: space-between;
+  height: 64px;
+  padding: 0;
+}
+
+.toolbar-left,
+.toolbar-center,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.toolbar-left {
+  width: 60px;
+}
+
+.toolbar-center {
+  flex: 1;
+  justify-content: center;
+  text-align: center;
+}
+
+.toolbar-right {
+  width: 120px;
+  justify-content: flex-end;
+  padding-right: 16px;
+}
+
+.toolbar-title {
+  font-size: 1.4rem;
+  font-weight: 500;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.content-container {
+  padding: 20px;
+}
+
+.logout-button {
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+/* Ajustes para movil */
+@media (max-width: 599px) {
+  .toolbar-left {
+    width: 48px;
+  }
+
+  .toolbar-title {
+    font-size: 1.2rem;
+  }
+
+  .toolbar-right {
+    width: 80px;
+    padding-right: 8px;
+  }
+
+  .logout-button {
+    min-width: unset;
+    padding: 0 8px;
+  }
+}

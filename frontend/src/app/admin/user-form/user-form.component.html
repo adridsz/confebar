@@ -1,0 +1,64 @@
+<h2 mat-dialog-title>{{ isEditMode ? "Editar Usuario" : "Nuevo Usuario" }}</h2>
+
+<form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nombre de Usuario</mat-label>
+      <input
+        matInput
+        formControlName="username"
+        placeholder="Nombre de usuario"
+      />
+      <mat-error *ngIf="userForm.get('username')?.hasError('required')">
+        El nombre de usuario es obligatorio
+      </mat-error>
+      <mat-error *ngIf="userForm.get('username')?.hasError('minlength')">
+        Mínimo 3 caracteres
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{
+        isEditMode
+          ? "Nueva Contraseña (dejar en blanco para mantener la actual)"
+          : "Contraseña"
+      }}</mat-label>
+      <input
+        matInput
+        type="password"
+        formControlName="password"
+        placeholder="Contraseña"
+      />
+      <mat-error *ngIf="userForm.get('password')?.hasError('required')">
+        La contraseña es obligatoria
+      </mat-error>
+      <mat-error *ngIf="userForm.get('password')?.hasError('minlength')">
+        Mínimo 6 caracteres
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Rol</mat-label>
+      <mat-select formControlName="role">
+        @for (role of roles; track role.value) {
+        <mat-option [value]="role.value">{{ role.viewValue }}</mat-option>
+        }
+      </mat-select>
+      <mat-error *ngIf="userForm.get('role')?.hasError('required')">
+        El rol es obligatorio
+      </mat-error>
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()">Cancelar</button>
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      [disabled]="userForm.invalid"
+    >
+      {{ isEditMode ? "Actualizar" : "Crear" }}
+    </button>
+  </mat-dialog-actions>
+</form>

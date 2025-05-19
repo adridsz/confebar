@@ -13,6 +13,9 @@ $dotenv->load();
 $container = new Container();
 require __DIR__ . '/../src/config/container.php';
 
+// Initialize database connection immediately
+$container->get('db');
+
 // Create app
 AppFactory::setContainer($container);
 $app = AppFactory::create();

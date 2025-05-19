@@ -1,0 +1,94 @@
+<div class="detail-container">
+  <div class="header">
+    <button mat-icon-button color="primary" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    @if (table) {
+    <h1>Mesa {{ table.number }}</h1>
+    } @else {
+    <h1>Detalles de Mesa</h1>
+    }
+  </div>
+
+  @if (loading) {
+  <div class="loading-container">
+    <mat-spinner></mat-spinner>
+  </div>
+  } @else if (table) {
+  <div class="table-info">
+    <mat-card [ngClass]="getTableStatusClass()">
+      <mat-card-header>
+        <mat-card-title>Mesa {{ table.number }}</mat-card-title>
+        <mat-card-subtitle
+          >Capacidad: {{ table.capacity }} personas</mat-card-subtitle
+        >
+      </mat-card-header>
+      <mat-card-content>
+        <div class="status-indicator">
+          <mat-icon>{{
+            table.occupied ? "restaurant" : "check_circle"
+          }}</mat-icon>
+          <span>{{ table.occupied ? "Ocupada" : "Disponible" }}</span>
+        </div>
+
+        @if (currentOrder) {
+        <mat-divider class="divider"></mat-divider>
+        <h2>Pedido Actual</h2>
+
+        @if (currentOrder.items && currentOrder.items.length > 0) {
+        <mat-list>
+          @for (item of currentOrder.items; track item.id) {
+          <mat-list-item class="order-item">
+            <div class="order-item-content">
+              <span class="order-item-name">{{ item.product.name }}</span>
+              <span class="order-item-quantity">x{{ item.quantity }}</span>
+              <span class="order-item-price"
+                >€{{ Number(item.subtotal).toFixed(2) }}</span
+              >
+            </div>
+          </mat-list-item>
+          }
+        </mat-list>
+
+        <div class="order-total">
+          <span>Total:</span>
+          <span class="total-amount"
+            >€{{ Number(currentOrder.total).toFixed(2) }}</span
+          >
+        </div>
+        } @else {
+        <p>No hay productos en este pedido.</p>
+        } } @else {
+        <div class="empty-order">
+          <p>No hay pedido activo para esta mesa.</p>
+        </div>
+        }
+      </mat-card-content>
+      <mat-card-actions>
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="openAddItemsDialog()"
+        >
+          <mat-icon>add_shopping_cart</mat-icon>
+          {{ currentOrder ? "Añadir Productos" : "Crear Pedido" }}
+        </button>
+        <button
+          mat-raised-button
+          color="accent"
+          [disabled]="!currentOrder"
+          (click)="openPaymentDialog()"
+        >
+          <mat-icon>payment</mat-icon>
+          Pagar
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+  } @else {
+  <div class="error-container">
+    <mat-icon color="warn">error</mat-icon>
+    <p>No se pudo cargar la información de la mesa.</p>
+  </div>
+  }
+</div>

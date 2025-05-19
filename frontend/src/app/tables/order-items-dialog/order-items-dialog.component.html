@@ -1,0 +1,108 @@
+<h2 mat-dialog-title>
+  {{ data.currentOrder ? "Añadir Productos" : "Crear Pedido" }}
+</h2>
+<mat-dialog-content>
+  @if (loading) {
+  <div class="loading-container">
+    <mat-spinner></mat-spinner>
+  </div>
+  } @else {
+  <div class="products-section">
+    <div class="category-filters">
+      <mat-chip-listbox
+        [(ngModel)]="selectedCategory"
+        (change)="filterByCategory()"
+      >
+        <mat-chip-option [value]="''">Todos</mat-chip-option>
+        @for (category of categories; track category) {
+        <mat-chip-option [value]="category">{{ category }}</mat-chip-option>
+        }
+      </mat-chip-listbox>
+    </div>
+
+    <div class="products-grid">
+      @for (product of filteredProducts; track product.id) {
+      <div
+        class="product-card"
+        [class.out-of-stock]="product.stock <= 0"
+        (click)="addProductToOrder(product)"
+      >
+        <div class="product-info">
+          <h3>{{ product.name }}</h3>
+          <p class="price">€{{ Number(product.price).toFixed(2) }}</p>
+          <p class="stock" [ngClass]="getStockClass(product.stock)">
+            <span>{{ product.stock }} disponibles</span>
+          </p>
+        </div>
+        @if (getProductQuantity(product.id) > 0) {
+        <div class="product-badge">{{ getProductQuantity(product.id) }}</div>
+        }
+      </div>
+      } @if (filteredProducts.length === 0) {
+      <div class="no-products">
+        <p>No hay productos disponibles en esta categoría.</p>
+      </div>
+      }
+    </div>
+  </div>
+
+  <mat-divider class="divider"></mat-divider>
+
+  <div class="selected-items">
+    <h3>Productos Seleccionados</h3>
+
+    @if (selectedItems.length === 0) {
+    <p class="empty-items">No hay productos seleccionados</p>
+    } @else {
+    <mat-list>
+      @for (item of selectedItems; track item.product_id; let i = $index) {
+      <mat-list-item class="item-row">
+        <div class="item-details">
+          <span class="item-name">{{ item.product.name }}</span>
+          <div class="quantity-controls">
+            <button
+              mat-icon-button
+              color="primary"
+              (click)="decreaseQuantity(i)"
+            >
+              <mat-icon>remove</mat-icon>
+            </button>
+            <span class="item-quantity">{{ item.quantity }}</span>
+            <button
+              mat-icon-button
+              color="primary"
+              (click)="increaseQuantity(i)"
+            >
+              <mat-icon>add</mat-icon>
+            </button>
+          </div>
+          <span class="item-price"
+            >€{{ Number(item.subtotal).toFixed(2) }}</span
+          >
+        </div>
+        <button mat-icon-button color="warn" (click)="removeItem(i)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </mat-list-item>
+      }
+    </mat-list>
+
+    <div class="order-total">
+      <span>Total:</span>
+      <span class="total-amount">€{{ Number(getTotal()).toFixed(2) }}</span>
+    </div>
+    }
+  </div>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button
+    mat-raised-button
+    color="primary"
+    [disabled]="selectedItems.length === 0 || loading"
+    (click)="onSubmit()"
+  >
+    {{ data.currentOrder ? "Actualizar Pedido" : "Crear Pedido" }}
+  </button>
+</mat-dialog-actions>

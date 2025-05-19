@@ -1,0 +1,37 @@
+<h2 mat-dialog-title>Añadir Nueva Mesa</h2>
+<mat-dialog-content>
+  <form (ngSubmit)="onSubmit()">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Número de Mesa</mat-label>
+      <input
+        matInput
+        type="number"
+        [(ngModel)]="table.number"
+        name="number"
+        required
+        min="1"
+      />
+      <mat-hint>Ingrese un número único para la mesa</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Capacidad</mat-label>
+      <mat-select [(ngModel)]="table.capacity" name="capacity" required>
+        @for (option of capacityOptions; track option) {
+        <mat-option [value]="option">{{ option }} personas</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="onSubmit()"
+    [disabled]="!table.number"
+  >
+    Guardar
+  </button>
+</mat-dialog-actions>

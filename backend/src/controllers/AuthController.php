@@ -18,10 +18,18 @@ class AuthController
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
+        // Buscar el usuario por nombre de usuario
         $user = User::where('username', $data['username'])->first();
 
-        if (!$user || !password_verify($data['password'], $user->password)) {
-            $response->getBody()->write(json_encode(['error' => 'Invalid credentials']));
+        // Si el usuario no existe, devolver error
+        if (!$user) {
+            $response->getBody()->write(json_encode(['error' => 'Usuario no encontrado']));
+            return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+        }
+
+        // Verificar la contraseña
+        if (!password_verify($data['password'], $user->password)) {
+            $response->getBody()->write(json_encode(['error' => 'Contraseña incorrecta']));
             return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
         }
 

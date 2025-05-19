@@ -1,0 +1,78 @@
+.payment-options {
+  min-width: 400px;
+}
+
+.total-section {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.highlight {
+  font-weight: bold;
+  color: #3f51b5;
+  font-size: 1.2em;
+}
+
+.divider {
+  margin: 16px 0;
+}
+
+.payment-method {
+  margin: 16px 0;
+}
+
+.method-group {
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+}
+
+.cash-payment {
+  margin-top: 16px;
+}
+
+.cash-amount {
+  width: 100%;
+}
+
+.change-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  margin-top: 16px;
+}
+
+.change-amount {
+  font-weight: bold;
+  font-size: 1.2em;
+  color: #4caf50;
+}
+
+.split-checkbox {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.split-options {
+  display: flex;
+  flex-direction: column;
+  margin-top: 8px;
+}
+
+.split-result {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  padding: 12px;
+  background-color: #e8f5e9;
+  border-radius: 4px;
+}
+
+.split-amount {
+  font-weight: bold;
+  color: #4caf50;
+}
